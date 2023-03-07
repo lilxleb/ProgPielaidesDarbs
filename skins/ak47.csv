@@ -1,0 +1,45 @@
+id,name,stattrack,souvenir,bestfloat,worstfloat
+1,Head Shot,1,0,0,1
+2,Nightwish,1,0,0,1
+3,Leet Museo,1,0,0,0.65
+4,Legend of Anubis,1,0,0,0.7
+5,Asiimov,1,0,0.05,0.7
+6,Neon Rider,1,0,0,0.8
+7,The Empress,1,0,0,1
+8,Bloodsport,1,0,0,0.45
+9,Neon Revolution,1,0,0,0.8
+10,Fuel Injector,1,0,0,1
+11,Aquamarine Revenge,1,0,0,1
+12,Wasteland Rebel,1,0,0.05,0.7
+13,Jaguar,1,0,0,1
+14,Vulcan,1,0,0,0.9
+15,Fire Serpent,1,0,0.06,0.76
+16,Gold Arabesque,0,1,0,0.7
+17,X-Ray,0,0,0,1
+18,Wild Lotus,0,0,0,1
+19,Ice Coaled,1,0,0,0.77
+20,Phantom Disruptor,1,0,0,0.65
+21,Point Disarray,1,0,0,0.67
+22,Frontside Misty,1,0,0.02,0.87
+23,Cartel,1,0,0,0.75
+24,Redline,1,0,0.1,0.7
+25,Case Hardened,1,0,0,1
+26,Red Laminate,1,0,0.06,0.8
+27,Panthera onca,0,1,0,1
+28,Hydroponic,0,0,0,0.8
+29,Jet Set,0,0,0,1
+30,Slate,1,0,0,1
+31,Rat Rod,1,0,0,1
+32,Orbit Mk01,1,0,0,0.55
+33,Blue Laminate,1,0,0.02,0.4
+34,Safety Net,0,1,0,0.6
+35,First Class,0,0,0,1
+36,Emerald Pinstripe,0,0,0,1
+37,Uncharted,1,0,0,0.75
+38,Elite Build,1,0,0,1
+39,Green Laminate,0,1,0.2,0.4
+40,Black Laminate,0,1,0.06,0.8
+41,Baroque Purple,0,0,0,1
+42,Safari Mesh,0,1,0.06,0.8
+43,Jungle Spray,0,0,0.06,0.8
+44,Predator,0,0,0.06,0.8

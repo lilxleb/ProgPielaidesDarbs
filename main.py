@@ -3,6 +3,7 @@ import tkinter.messagebox
 import customtkinter as cTk
 import requests
 import csv
+import os
 
 
 secret = "zFAETYDs83HkjGk4ux82cGZvP90"
@@ -45,14 +46,38 @@ class App(cTk.CTk):
         typeName = self.getType()
         selectedType=cTk.StringVar(value="")
 
+        #type dropdown
         self.typeDropdown = cTk.CTkOptionMenu(self.itemgetterframe, variable=selectedType, values=typeName, command=self.updateWeaponName)
         self.typeDropdown.grid(row=0, column=0)
         self.typeDropdown.set("Rifle")
 
-        self.weaponDropdown = cTk.CTkOptionMenu(self.itemgetterframe, values=weaponName)
+        csvFileName=''
+        #gun dropdown
+        selectedGun=cTk.StringVar(value="")
+        self.weaponDropdown = cTk.CTkOptionMenu(self.itemgetterframe, variable=selectedGun, values=weaponName, command=self.updateSkinName)
         self.weaponDropdown.grid(row=0, column=1)
         self.weaponDropdown.set("Not Available")
+
+        #skin dropdown
+        selectedSkin=cTk.StringVar(value="")
+        skinName=[]
+        self.skinDropdown = cTk.CTkOptionMenu(self.itemgetterframe, variable=selectedSkin, values=skinName, command=self.updateAvailableWear)
+        self.skinDropdown.grid(row=0, column=2)
+        self.skinDropdown.set("Not Available")
+
+        #wear dropdown
+        selectedWear=cTk.StringVar(value="")
+        availableWear=[]
+        self.wearDropdown = cTk.CTkOptionMenu(self.itemgetterframe, variable=selectedWear, values=availableWear)
+        self.wearDropdown.grid(row=0, column=3)
+        self.wearDropdown.set("Not Available")
     
+
+
+#---
+#epic fucntions start here
+#---
+
     def updateWeaponName(self, selectedType):
         with open('prog_piel\weaponvalues.csv', 'r', encoding='UTF-8') as file:
             reader = csv.DictReader(file)
@@ -60,8 +85,31 @@ class App(cTk.CTk):
             for line in reader:
                 if line['type']==selectedType:
                     returnList.append(line['wep_name'])
-            self.weaponDropdown.configure(values=returnList)
-            self.weaponDropdown.set(returnList[0])
+        self.weaponDropdown.configure(values=returnList)
+        self.weaponDropdown.set(returnList[0])
+
+    def updateSkinName(self, selectedGun):
+        self.csvFileName=selectedGun.replace('-', '').lower()+".csv"
+        with open(os.path.join("prog_piel/skins", self.csvFileName), 'r', encoding='UTF-8') as file:
+            reader = csv.DictReader(file)
+            tempskinName=[]
+            for line in reader:
+                tempskinName.append(line['name'])
+        self.skinDropdown.configure(values=tempskinName)
+        self.skinDropdown.set(tempskinName[0])
+        self.skinName=tempskinName
+
+    def updateAvailableWear(self, selectedSkin):
+        with open(os.path.join("prog_piel/skins", self.csvFileName), 'r', encoding='UTF-8') as file:
+            tempAvailableWear=[]
+            reader = csv.DictReader(file)
+            for line in reader:
+                if line['name']==selectedSkin:
+                    best = line['bestfloat']
+                    worst = line['worstfloat']
+                    break
+            #nepieciešams iegūt wear tipus no best un worst
+            
     
     def getType(self):
         with open('prog_piel\weaponvalues.csv', 'r', encoding='UTF-8') as file:
@@ -73,6 +121,7 @@ class App(cTk.CTk):
             uniqueTypes=[*uniqueTypes, ]
             return uniqueTypes
             #vajag lielos sākuma burtus + alfabēta secībā
+            
         
 
 
