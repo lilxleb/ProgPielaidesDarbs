@@ -1,4 +1,4 @@
-id,name,stattrack,souvenir,bestfloat,worstfloat
+id,name,stattrack,souvenir,lowestf,highestf
 1,Head Shot,1,0,0,1
 2,Nightwish,1,0,0,1
 3,Leet Museo,1,0,0,0.65
