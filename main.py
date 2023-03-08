@@ -8,19 +8,6 @@ import os
 
 secret = "zFAETYDs83HkjGk4ux82cGZvP90"
 
-# ievads = input("ievadi skin nosaukumu: ")
-
-# ievads=ievads.replace(" ", "%20").replace("|", "%7C").replace("(", "%28").replace(")", "%29")
-# # ierocis | skinname (wear)
-
-# response = requests.get(f"https://api.steamapis.com/market/item/730/{ievads}?api_key={secret}")
-# skin=response.json()
-# if response.status_code==400:
-#     print("tu esi lohs")
-#     print(ievads)
-# else:
-#     pp.pprint(f"{skin['market_name']} bilde: {skin['image']}")
-
 
 cTk.set_appearance_mode("Dark")  # Modes: "System" (standard), "Dark", "Light"
 cTk.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
@@ -44,13 +31,6 @@ class App(cTk.CTk):
         #self.itemgetterframe.grid_rowconfigure(0, weight=1)
         #item dropdowni
 
-        # typeName = self.getType()
-        # selectedType=cTk.StringVar(value="")
-        #taisīšu tikai rifles
-        # #type dropdown
-        # self.typeDropdown = cTk.CTkOptionMenu(self.itemgetterframe, variable=selectedType, values=typeName, command=self.updateWeaponName)
-        # self.typeDropdown.grid(row=0, column=0)
-        # self.typeDropdown.set("Rifle")
 
         csvFileName=''
         #gun dropdown
@@ -69,13 +49,40 @@ class App(cTk.CTk):
 
         #wear dropdown
         selectedWear=cTk.StringVar(value="")
-        self.wearDropdown = cTk.CTkOptionMenu(self.itemgetterframe, variable=selectedWear, values=self.placeholder)
+        self.wearDropdown = cTk.CTkOptionMenu(self.itemgetterframe, variable=selectedWear, values=self.placeholder, command=self.enableLoad)
         self.wearDropdown.grid(row=0, column=2)
         self.wearDropdown.set("Not Available")
 
+        ifStatTrack=cTk.IntVar(value=0)
+        self.stattrackCheckbox = cTk.CTkCheckBox(self.itemgetterframe, text="Stattrack?", variable=ifStatTrack, state="disabled", onvalue=1, offvalue=0)
+        self.stattrackCheckbox.grid(row=0, column=3)
+
         #load button
-        self.loadButton = cTk.CTkButton(self.itemgetterframe, text="Load", command=self.apiRequest)
-        self.loadButton.grid(row=0, column=3)
+        self.loadButton = cTk.CTkButton(self.itemgetterframe, text="Load", command=self.apiRequest, state='disabled')
+        self.loadButton.grid(row=0, column=4)
+
+        #--- display shit ---
+        self.itemImage = cTk.CTkLabel(self, text="placeholder")
+        self.marketHashName = cTk.CTkLabel(self, text="placeholder")
+        self.price = cTk.CTkLabel(self, text="placeholder")
+        self.lore = cTk.CTkLabel(self, text="placeholder")
+        self.collection = cTk.CTkLabel(self, text="placeholder")
+        
+        # Grid widgets
+        self.itemImage.grid(row=0, column=0, rowspan=4, padx=10)
+        self.marketHashName.grid(row=0, column=1, sticky='w', padx=10, pady=5)
+        self.price.grid(row=1, column=1, sticky='w', padx=10, pady=5)
+        self.lore.grid(row=2, column=1, sticky='w', padx=10, pady=5)
+        self.collection.grid(row=3, column=1, sticky='w', padx=10, pady=5)
+        
+        # Configure grid layout
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=1)
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=1)
+        self.grid_rowconfigure(2, weight=1)
+        self.grid_rowconfigure(3, weight=1)
+
     
 
 
@@ -109,25 +116,38 @@ class App(cTk.CTk):
             reader = csv.DictReader(file)
             lowest=0.0
             highest=0.0
+            stattrack=0
+            souvenir=0
             for line in reader:
                 if line['name']==selectedSkin:
                     lowest=float(line['lowestf'])
                     highest=float(line['highestf'])
+                    stattrack=int(line['stattrack'])
+                    souvenir=int(line['souvenir'])
                     break
             
             wear_type_bounds = {
                 "Factory New": [0.00, 0.07],
                 "Minimal Wear": [0.07, 0.15],
                 "Field-Tested": [0.15, 0.38],
-                "Well Worn": [0.38, 0.45],
-                "Battle Scarred": [0.45, 1.00]
+                "Well-Worn": [0.38, 0.45],
+                "Battle-Scarred": [0.45, 1.00]
             }
             returnWearTypes = []
             for wear_type, bounds in wear_type_bounds.items():
                 if lowest <= bounds[1] and highest >= bounds[0]:
                     returnWearTypes.append(wear_type)
+
             self.wearDropdown.configure(values=returnWearTypes)
             self.wearDropdown.set(returnWearTypes[0])
+            if souvenir==1:
+                self.stattrackCheckbox.configure(state='normal')
+                self.stattrackCheckbox.configure(text="Souvenir?")
+            elif stattrack==1:
+                self.stattrackCheckbox.configure(state='normal')
+                self.stattrackCheckbox.configure(text="Stattrack?")
+            elif souvenir==0 and stattrack==0:
+                self.stattrackCheckbox.configure(state='disabled')
                
     def getType(self):
         with open('prog_piel\weaponvalues.csv', 'r', encoding='UTF-8') as file:
@@ -138,11 +158,46 @@ class App(cTk.CTk):
             uniqueTypes=set(uniqueTypes)
             uniqueTypes=[*uniqueTypes, ]
             return uniqueTypes
-            #vajag lielos sākuma burtus + alfabēta secībā
+    
+    def enableLoad(self, selectedWear):
+        self.loadButton.configure(state='normal')
 
     def apiRequest(self):
+        weapon = self.weaponDropdown.get()
+        skin = self.skinDropdown.get()
+        wear = self.wearDropdown.get()
+        ifStatTrack = self.stattrackCheckbox.get()
+        if ifStatTrack==1 and self.stattrackCheckbox.cget('text')=="Stattrack?":
+            print(self.stattrackCheckbox.cget('text'))
+            requestString="StatTrak™ "+weapon+" | "+skin+" ("+wear+")"
+        elif ifStatTrack==1 and self.stattrackCheckbox.cget('text')=="Souvenir?":
+            print(self.stattrackCheckbox.cget('text'))
+            requestString="Souvenir "+weapon+" | "+skin+" ("+wear+")"
+        else:
+            requestString=weapon+" | "+skin+" ("+wear+")" 
+        requestString = requestString.replace(" ", "%20").replace("|", "%7C").replace("(", "%28").replace(")", "%29")
+
+        response = requests.get(f"https://api.steamapis.com/market/item/730/{requestString}?api_key={secret}")
+        itemData=response.json()
+        self.itemImage.configure(text=itemData['image'])
+        self.marketHashName.configure(text=itemData['market_hash_name'])
+        self.price.configure(text=itemData['median_avg_prices_15days'][0][1])
+        self.lore.configure(text=itemData['assets']['descriptions'][2]['value'])
+        self.collection.configure(text=itemData['assets']['descriptions'][4]['value'])
+
+    # def getUIElements(self, requestString):
+    #     response = requests.get(f"https://api.steamapis.com/market/item/730/{requestString}?api_key={secret}")
+    #     response.json()
+    
+    def loadImage(self, url):
+        # TODO: Implement image loading
         pass
-            
+    
+    def getRarityColor(self, rarity):
+        # TODO: Implement rarity color coding
+        return 'white'
+
+
         
 
 
