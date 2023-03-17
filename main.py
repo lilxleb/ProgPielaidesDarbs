@@ -202,18 +202,7 @@ class App(cTk.CTk):
             print(itemData['assets']['descriptions'])
         else:
             self.collection.configure(text=itemData['assets']['descriptions'][4]['value'])
-        
-    # def getUIElements(self, requestString):
-    #     response = requests.get(f"https://api.steamapis.com/market/item/730/{requestString}?api_key={secret}")
-    #     response.json()
-    
-    def loadImage(self, url):
-        # TODO: Implement image loading
-        pass
-    
-    def getRarityColor(self, rarity):
-        # TODO: Implement rarity color coding
-        return 'white'
+
 
 
         
