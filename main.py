@@ -1,10 +1,13 @@
-import tkinter
+import tkinter as tk
 import tkinter.messagebox
 import customtkinter as cTk
 import requests
 import csv
 import os
-
+from urllib.request import urlopen
+from PIL import Image
+import io
+import sqlite3 as sqlite3
 
 secret = "zFAETYDs83HkjGk4ux82cGZvP90"
 
@@ -24,13 +27,12 @@ class App(cTk.CTk):
         # configure window
         self.title("Džo baidens")
         self.geometry(f"{1100}x{580}")
+        self.resizable(False, False)
              
-        #item dropdowna linki
         self.itemgetterframe = cTk.CTkFrame(self)
-        self.itemgetterframe.grid(row=0, column=0, rowspan=4, sticky="nesw")
-        #self.itemgetterframe.grid_rowconfigure(0, weight=1)
-        #item dropdowni
-
+        self.itemgetterframe.grid(row=0, column=0, columnspan=2, sticky="nsew", padx=15, pady=10, ipadx=15, ipady=15)
+        self.itemgetterframe.grid_columnconfigure((0,1,2,3,4), weight=1)     
+        self.itemgetterframe.grid_rowconfigure(0, weight=1)
 
         csvFileName=''
         #gun dropdown
@@ -62,26 +64,29 @@ class App(cTk.CTk):
         self.loadButton.grid(row=0, column=4)
 
         #--- display shit ---
-        self.itemImage = cTk.CTkLabel(self, text="placeholder")
-        self.marketHashName = cTk.CTkLabel(self, text="placeholder")
-        self.price = cTk.CTkLabel(self, text="placeholder")
-        self.lore = cTk.CTkLabel(self, text="placeholder")
-        self.collection = cTk.CTkLabel(self, text="placeholder")
+        
+        self.imageFrame = cTk.CTkFrame(self)
+        self.itemImage = cTk.CTkLabel(self.imageFrame, text="placeholder")
+        self.imageFrame.grid(row=1, column=0, sticky='e', rowspan=3, padx=10)
+        self.itemImage.grid(row=1, column=0, sticky="nsew", rowspan=3)
+
+        self.dataFrame = cTk.CTkFrame(self)
+        self.marketHashName = cTk.CTkLabel(self.dataFrame, text="placeholder")
+        self.price = cTk.CTkLabel(self.dataFrame, text="placeholder")
+        self.lore = cTk.CTkTextbox(self.dataFrame)
+        self.collection = cTk.CTkLabel(self.dataFrame, text="placeholder")
         
         # Grid widgets
-        self.itemImage.grid(row=0, column=0, rowspan=4, padx=10)
-        self.marketHashName.grid(row=0, column=1, sticky='w', padx=10, pady=5)
-        self.price.grid(row=1, column=1, sticky='w', padx=10, pady=5)
-        self.lore.grid(row=2, column=1, sticky='w', padx=10, pady=5)
-        self.collection.grid(row=3, column=1, sticky='w', padx=10, pady=5)
+        self.dataFrame.grid(row=1, column=1, sticky="w", padx=10, pady=5)
+        self.marketHashName.grid(row=0, column=0, sticky='w', padx=10, pady=5)
+        self.price.grid(row=1, column=0, sticky='w', padx=10, pady=5)
+        self.lore.grid(row=2, column=0, sticky='w', padx=10, pady=5)
+        self.collection.grid(row=3, column=0, sticky='w', padx=10, pady=5)
         
         # Configure grid layout
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_columnconfigure(1, weight=1)
-        self.grid_rowconfigure(0, weight=1)
-        self.grid_rowconfigure(1, weight=1)
-        self.grid_rowconfigure(2, weight=1)
-        self.grid_rowconfigure(3, weight=1)
+        self.grid_columnconfigure((0,1), weight=1)
+        self.grid_rowconfigure((1,2,3), weight=1)
+
 
     
 
@@ -91,7 +96,7 @@ class App(cTk.CTk):
 #---
 
     def updateWeaponName(self, selectedType):
-        with open('prog_piel\weaponvalues.csv', 'r', encoding='UTF-8') as file:
+        with open('weaponvalues.csv', 'r', encoding='UTF-8') as file:
             reader = csv.DictReader(file)
             returnList=[]
             for line in reader:
@@ -102,7 +107,7 @@ class App(cTk.CTk):
     
     def updateSkinName(self, selectedGun):
         self.csvFileName=selectedGun.replace('-', '').lower()+".csv"
-        with open(os.path.join("prog_piel/skins", self.csvFileName), 'r', encoding='UTF-8') as file:
+        with open(os.path.join("skins", self.csvFileName), 'r', encoding='UTF-8') as file:
             reader = csv.DictReader(file)
             skinName=[]
             for line in reader:
@@ -112,7 +117,7 @@ class App(cTk.CTk):
         self.skinDropdown.set(skinName[0])
 
     def updateAvailableWear(self, selectedSkin):
-        with open(os.path.join("prog_piel/skins", self.csvFileName), 'r', encoding='UTF-8') as file:
+        with open(os.path.join("skins", self.csvFileName), 'r', encoding='UTF-8') as file:
             reader = csv.DictReader(file)
             lowest=0.0
             highest=0.0
@@ -150,7 +155,7 @@ class App(cTk.CTk):
                 self.stattrackCheckbox.configure(state='disabled')
                
     def getType(self):
-        with open('prog_piel\weaponvalues.csv', 'r', encoding='UTF-8') as file:
+        with open('weaponvalues.csv', 'r', encoding='UTF-8') as file:
             reader = csv.DictReader(file)
             uniqueTypes=[]
             for line in reader:
@@ -179,12 +184,25 @@ class App(cTk.CTk):
 
         response = requests.get(f"https://api.steamapis.com/market/item/730/{requestString}?api_key={secret}")
         itemData=response.json()
-        self.itemImage.configure(text=itemData['image'])
+        img_url = itemData['image']
+        image_byt = urlopen(img_url).read()
+        image_io = io.BytesIO(image_byt)
+        pil_image = Image.open(image_io)
+
+        skinImage = cTk.CTkImage(dark_image=pil_image, size=[512,384])
+        self.itemImage.configure(image=skinImage)
         self.marketHashName.configure(text=itemData['market_hash_name'])
         self.price.configure(text=itemData['median_avg_prices_15days'][0][1])
-        self.lore.configure(text=itemData['assets']['descriptions'][2]['value'])
-        self.collection.configure(text=itemData['assets']['descriptions'][4]['value'])
-
+        self.lore.configure(state="normal")
+        self.lore.insert("0.0", str(itemData['assets']['descriptions'][2]['value']))
+        self.lore.configure(state="disabled")
+        print(itemData['assets']['descriptions'][2]['value'])
+        if ifStatTrack==1:
+            self.collection.configure(text=itemData['assets']['descriptions'][6]['value'])
+            print(itemData['assets']['descriptions'])
+        else:
+            self.collection.configure(text=itemData['assets']['descriptions'][4]['value'])
+        
     # def getUIElements(self, requestString):
     #     response = requests.get(f"https://api.steamapis.com/market/item/730/{requestString}?api_key={secret}")
     #     response.json()
