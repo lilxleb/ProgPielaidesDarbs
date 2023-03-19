@@ -104,7 +104,7 @@ class App(cTk.CTk):
                     returnList.append(line['wep_name'])
         returnList.sort()
         return returnList
-    
+
     def updateSkinName(self, selectedGun):
         self.csvFileName=selectedGun.replace('-', '').lower()+".csv"
         with open(os.path.join("skins", self.csvFileName), 'r', encoding='UTF-8') as file:
@@ -153,7 +153,7 @@ class App(cTk.CTk):
                 self.stattrackCheckbox.configure(text="Stattrack?")
             elif souvenir==0 and stattrack==0:
                 self.stattrackCheckbox.configure(state='disabled')
-               
+                
     def getType(self):
         with open('weaponvalues.csv', 'r', encoding='UTF-8') as file:
             reader = csv.DictReader(file)
@@ -163,7 +163,7 @@ class App(cTk.CTk):
             uniqueTypes=set(uniqueTypes)
             uniqueTypes=[*uniqueTypes, ]
             return uniqueTypes
-    
+
     def enableLoad(self, selectedWear):
         self.loadButton.configure(state='normal')
 
@@ -181,6 +181,7 @@ class App(cTk.CTk):
         else:
             requestString=weapon+" | "+skin+" ("+wear+")" 
         requestString = requestString.replace(" ", "%20").replace("|", "%7C").replace("(", "%28").replace(")", "%29")
+        print(requestString)
 
         response = requests.get(f"https://api.steamapis.com/market/item/730/{requestString}?api_key={secret}")
         itemData=response.json()
