@@ -8,8 +8,12 @@ from urllib.request import urlopen
 from PIL import Image
 import io
 import sqlite3 as sqlite3
+import login
 
-secret = "zFAETYDs83HkjGk4ux82cGZvP90"
+secret = login.finalapikey
+print(secret)
+
+  
 
 
 cTk.set_appearance_mode("Dark")  # Modes: "System" (standard), "Dark", "Light"
@@ -23,7 +27,7 @@ class App(cTk.CTk):
         
         #args
         self.placeholder=["no weapon type has been selected"]
-        
+
         # configure window
         self.title("Džo baidens")
         self.geometry(f"{1100}x{580}")
@@ -66,15 +70,15 @@ class App(cTk.CTk):
         #--- display shit ---
         
         self.imageFrame = cTk.CTkFrame(self)
-        self.itemImage = cTk.CTkLabel(self.imageFrame, text="placeholder")
+        self.itemImage = cTk.CTkLabel(self.imageFrame, text="")
         self.imageFrame.grid(row=1, column=0, sticky='e', rowspan=3, padx=10)
         self.itemImage.grid(row=1, column=0, sticky="nsew", rowspan=3)
 
         self.dataFrame = cTk.CTkFrame(self)
-        self.marketHashName = cTk.CTkLabel(self.dataFrame, text="placeholder")
-        self.price = cTk.CTkLabel(self.dataFrame, text="placeholder")
+        self.marketHashName = cTk.CTkLabel(self.dataFrame, text="")
+        self.price = cTk.CTkLabel(self.dataFrame, text="")
         self.lore = cTk.CTkTextbox(self.dataFrame)
-        self.collection = cTk.CTkLabel(self.dataFrame, text="placeholder")
+        self.collection = cTk.CTkLabel(self.dataFrame, text="")
         
         # Grid widgets
         self.dataFrame.grid(row=1, column=1, sticky="w", padx=10, pady=5)
@@ -87,13 +91,7 @@ class App(cTk.CTk):
         self.grid_columnconfigure((0,1), weight=1)
         self.grid_rowconfigure((1,2,3), weight=1)
 
-
-    
-
-
-#---
-#epic fucntions start here
-#---
+#funkcijas==============================================================================
 
     def updateWeaponName(self, selectedType):
         with open('weaponvalues.csv', 'r', encoding='UTF-8') as file:
@@ -173,18 +171,17 @@ class App(cTk.CTk):
         wear = self.wearDropdown.get()
         ifStatTrack = self.stattrackCheckbox.get()
         if ifStatTrack==1 and self.stattrackCheckbox.cget('text')=="Stattrack?":
-            print(self.stattrackCheckbox.cget('text'))
             requestString="StatTrak™ "+weapon+" | "+skin+" ("+wear+")"
         elif ifStatTrack==1 and self.stattrackCheckbox.cget('text')=="Souvenir?":
-            print(self.stattrackCheckbox.cget('text'))
             requestString="Souvenir "+weapon+" | "+skin+" ("+wear+")"
         else:
             requestString=weapon+" | "+skin+" ("+wear+")" 
         requestString = requestString.replace(" ", "%20").replace("|", "%7C").replace("(", "%28").replace(")", "%29")
-        print(requestString)
 
+        print(secret)
         response = requests.get(f"https://api.steamapis.com/market/item/730/{requestString}?api_key={secret}")
         itemData=response.json()
+        print(response.status_code)
         img_url = itemData['image']
         image_byt = urlopen(img_url).read()
         image_io = io.BytesIO(image_byt)
@@ -193,17 +190,24 @@ class App(cTk.CTk):
         skinImage = cTk.CTkImage(dark_image=pil_image, size=[512,384])
         self.itemImage.configure(image=skinImage)
         self.marketHashName.configure(text=itemData['market_hash_name'])
-        self.price.configure(text=itemData['median_avg_prices_15days'][0][1])
+        self.price.configure(text="Cena: "+str(round(itemData['median_avg_prices_15days'][0][1],2))+"€")
         self.lore.configure(state="normal")
-        self.lore.insert("0.0", str(itemData['assets']['descriptions'][2]['value']))
-        self.lore.configure(state="disabled")
-        print(itemData['assets']['descriptions'][2]['value'])
+        self.lore.delete("1.0", tk.END)
+        #self.lore.insert("0.0", str(itemData['assets']['descriptions'][2]['value']))
+        #self.lore.configure(state="disabled")
         if ifStatTrack==1:
-            self.collection.configure(text=itemData['assets']['descriptions'][6]['value'])
-            print(itemData['assets']['descriptions'])
+            # self.collection.configure(text=itemData['assets']['descriptions'][6]['value'])
+            # print(itemData['assets']['descriptions'])
+            #strādā, ja ierocim nav uzlīmes
+            self.lore.insert("0.0", str(itemData['assets']['descriptions'][7]['value']))
+            self.lore.configure(state="disabled")
         else:
             self.collection.configure(text=itemData['assets']['descriptions'][4]['value'])
-
+            self.lore.insert("0.0", str(itemData['assets']['descriptions'][2]['value']))
+            self.lore.configure(state="disabled")
+    
+    
+            
 
 
         

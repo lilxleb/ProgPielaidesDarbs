@@ -3,6 +3,8 @@ import tkinter.messagebox
 import customtkinter as cTk
 import requests
 import sqlite3 as sqlite3
+import time
+
 
 cTk.set_appearance_mode("Dark")  # Modes: "System" (standard), "Dark", "Light"
 cTk.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
@@ -47,7 +49,7 @@ class App(cTk.CTk):
         self.checkerframe.grid(row=1, column=0)
 
         self.apikeycheck=cTk.CTkButton(self.checkerframe, text="Pārbaudīt API atslēgu", command=self.checkapikey)
-        self.registerbutton=cTk.CTkButton(self.checkerframe, text="Reģistrēties", state="Disabled", text_color="gray", command=self.register)
+        self.registerbutton=cTk.CTkButton(self.checkerframe, text="Reģistrēties", state="disabled", text_color="gray", command=self.register)
         self.statustext=cTk.CTkLabel(self.checkerframe, text=" ")
         self.apikeycheck.grid(row=0, column=0)
         self.registerbutton.grid(row=0, column=1)
@@ -70,7 +72,52 @@ class App(cTk.CTk):
             self.statustext.configure(text="API atslēga nav ievadīta!", text_color="red")
     
     def register(self):
-        pass
+        username = self.usernameinput.get()
+        password1 = self.password1input.get()
+        password2 = self.password2input.get()
+        apikey = self.keyinput.get()
+        if password1 and password2:
+            if password1==password2:
+                #uzsākt reģistrācijas procesu
+                conn = sqlite3.connect('users.db')
+                c = conn.cursor()
+                c.execute('''
+                    CREATE TABLE IF NOT EXISTS usernames (
+                        uID INTEGER PRIMARY KEY,
+                        username TEXT NOT NULL, 
+                        password TEXT NOT NULL 
+                    )
+                ''')
+                c.execute('''
+                    CREATE TABLE IF NOT EXISTS apikeys (
+                        aID INTEGER PRIMARY KEY,
+                        apikey TEXT NOT NULL,
+                        FOREIGN KEY (aID) REFERENCES usernames (uID)
+                    )
+                ''')
+
+                c.execute("SELECT * FROM usernames")
+                info = c.fetchall()
+                for row in info:
+                    if row[1]==username:
+                        self.statustext.configure(text="Jau eksistē šāds lietotājs.", text_color="red")
+                        break
+                c.execute(f'''
+                    INSERT INTO "usernames" ("username", "password") VALUES (?, ?)''', (username, password1)
+                )
+                c.execute(f'''
+                    INSERT INTO "apikeys" ("apikey") VALUES (?)''', (apikey,)
+                )
+                conn.commit()
+                c.close()
+                self.statustext.configure(text="Reģistrācija pabeigta! Variet aizvērt logu.", text_color="green")
+                self.destroy()
+            else:
+                self.statustext.configure(text="Paroles nesakrīt", text_color="red")
+            
+        else:
+            self.statustext.configure(text="Nav ievadīta parole!", text_color="red")
+            
         
 
 
